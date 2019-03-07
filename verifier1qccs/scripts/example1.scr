@@ -1,0 +1,44 @@
+nat n;
+nat m;
+
+channel c1 : n;
+
+qvar q : n;
+qvar r : n;
+qvar s : m;
+
+dsym EPR  : n,n;
+dsym PROB : n,n;
+dsym EVE : m;
+
+operator hadamards : n;
+
+process hadamards_send
+ hadamards[q].c1!q.discard(r)
+end
+
+environment epr_env
+ EPR[q,r] * EVE[s]	   
+end
+
+environment prob_env
+ EPR[q,r] * EVE[s]	   
+end
+
+configuration C1
+ proc hadamards_send
+ env  epr_env
+end
+
+configuration C2
+ proc hadamards_send
+ env  prob_env
+end
+
+equation E1
+ Tr[q](hadamards[q](EPR[q,r])) = Tr[q](hadamards[q](PROB[q,r]))
+end
+
+equation E2
+ hadamards[q](hadamards[q](__[q])) = __[q]
+end

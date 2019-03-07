@@ -1,0 +1,72 @@
+# measure before or after
+
+nat 1;
+nat n;
+nat m;
+channel c : n;
+channel d : n;
+qvar b : 1;
+qvar b1 : 1;
+qvar b2 : 1;
+qvar q1 : n;
+qvar q2 : n;
+qvar q3 : n;
+qvar q4 : n;
+qvar q5 : n;
+qvar qEVE : m;
+dsym EPR : n,n;
+dsym PROB : n,n;
+dsym EVE : m;
+
+operator measure : n;
+operator hadamards : n;
+
+process PA
+ (d!q4.measure[q3].discard(q3)||measure[q1].c!q2.discard(q1))
+end
+
+process PB
+ (c!q2.discard(q1)||d!q4.measure[q3].discard(q3))
+end
+
+environment EPR_ENV
+ EPR[q3,q4] * EPR[q1,q2] * EVE[qEVE]
+end
+
+environment PROB_ENV
+ PROB[q1,q2] * PROB[q3, q4] * EVE[qEVE]
+end
+
+equation E1 
+ measure[q1](EPR[q1,q2]) = PROB[q1,q2]
+end
+  
+equation E2 
+ measure[q3](EPR[q3,q4]) = PROB[q3,q4]
+end
+
+equation E3
+ Tr[q1](EPR[q1,q2]) = Tr[q1](PROB[q1,q2])
+end
+
+equation E4
+ Tr[q3](EPR[q3,q4]) = Tr[q3](PROB[q3,q4])
+end
+
+equation E5
+ measure[q1](PROB[q1,q2]) = PROB[q1,q2]
+end
+
+equation E6
+ measure[q3](PROB[q3,q4]) = PROB[q3,q4]
+end
+
+configuration A
+ proc PA
+ env EPR_ENV
+end
+
+configuration B
+ proc PB
+ env PROB_ENV
+end

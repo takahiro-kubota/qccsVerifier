@@ -1,0 +1,29 @@
+VERIFIER'S VERSION
+    0.61 (updated on December 12, 2013)
+
+DESCRIPTION
+    verifier.rb - checks weak open basimilarity of two input qCCS configurations
+
+REQUIREMENTS
+    required ruby's version is 1.9.2p290
+
+USAGE
+    ruby verifier.rb [OPTION] FILE
+
+ -s, show all configurations defined in FILE without
+     checking bisimilarity
+ -t, show transition trees, counts the number of
+     transitions and paths for all configurations defined in
+     file without checking bisimilarity
+ -d, show information when the verifier returns false
+ -u, show two partial traces when they are not equal
+ -v, show processes, environments and partial traces of two configurations in each step
+
+* If no option is set, only the bisimilarity check procedure runs.
+* The options are mutually exclusive.
+
+EXAMPLES
+    ruby verifier.rb scripts/shor-preskill.scr
+    ruby verifier.rb -s scripts/shor-preskill.scr
+    ruby verifier.rb -v scripts/qtel.scr
+    ruby verifier.rb -d scripts/epr_or_prob.scr

@@ -1,0 +1,275 @@
+nat n;
+nat 2n;
+nat N;
+nat m;
+
+channel c1 : n;
+channel c2 : n;
+channel c3 : 1;
+channel c4 : N;
+channel c5 : 2n;
+channel c6 : n;
+channel c7 : 1;
+channel c8 : n;
+channel c9 : n;
+channel barrier : 1;
+channel cka : n;
+channel ckb : n;
+channel d1 : N;
+channel d2 : 2n;
+channel d3 : 1;
+channel d4 : n;
+channel d5 : 1;
+channel d6 : n;
+
+qvar q1_A : n;
+qvar q2_A : n;
+qvar r1_A : n;
+qvar r2_A : n;
+qvar s_A : 2n;
+qvar t_A : N;
+qvar S_A : 2n;
+qvar T_A : N;
+qvar b1_A : 1;
+qvar b2_A : 1;
+qvar B_A : 1;
+qvar x_A : n;
+qvar z_A : n;
+qvar X_A : n;
+qvar f_A : 1;
+qvar Z_A : n;
+qvar E_A : m;
+qvar v1_A : n;
+qvar v_B : n;
+
+qvar a_B : 1;
+qvar A_B : 1;
+qvar Q_B : n;
+qvar sx_B : n;
+qvar sz_B : n;
+
+dsym EPR : n,n;
+dsym PROB : n,n;
+dsym RND_n : n;
+dsym RND_2n : 2n;
+dsym RND_N : N;
+dsym Z_1 : 1;
+dsym Z_n : n;
+dsym Z_n_n : n,n;
+dsym Z_2n : 2n;
+dsym Z_N : N;
+dsym RC1c : n;
+dsym RC2 : n;
+dsym EVE : m;
+dsym EVE1 : n;
+dsym EVE2 : n;
+
+operator hadamards : n,n,2n;
+operator shuffle : n,n,N;
+operator unshuffle : n,n,N;
+operator copyn : n,n;
+operator copy2n : 2n,2n;
+operator copyN : N,N;
+operator measure : n;
+operator abort_alice : n,n,1;
+operator copy1 : 1,1;
+operator css_projection : n,n,n;
+operator css_decode : n,n,n;
+operator css_syndrome : n,n,n,n,n;
+operator css_correct : n,n,n;
+operator cnot : n,n;
+operator cnot_and_swap : n,n;
+operator syndrome : n,n;
+operator correct : n,n;
+operator key : n;
+
+process EDPbased
+ ((hadamards[q2_A,r2_A,s_A].
+  shuffle[q2_A,r2_A,t_A].
+  c1!q2_A.c2!r2_A.c3?a_A.
+  copyN[t_A,T_A].c4!t_A.d1!T_A.
+  copy2n[s_A,S_A].c5!s_A.d2!S_A.
+  measure[q1_A].
+  c6?u_A.abort_alice[q1_A,u_A,b1_A].
+  copy1[b1_A,b2_A].copy1[b1_A,B_A].
+  c7!b1_A.d3!B_A.
+  meas b2_A then
+   css_projection[r1_A,x_A,z_A].
+   copyn[x_A,X_A].
+   css_decode[r1_A,x_A,z_A].
+   measure[r1_A].
+   c8!x_A.d4!X_A.
+   c9!z_A.
+   barrier!f_A.
+   cka!r1_A.
+   discard(q1_A,b2_A,a_A,u_A,v1_A,v_B)
+  saem
+ ||
+  c1?q_B.c2?r_B.
+  c3!a_B.d5!A_B.
+  c4?t_B.unshuffle[q_B,r_B,t_B].
+  c5?s_B.hadamards[q_B,r_B,s_B].
+  measure[q_B].
+  copyn[q_B,Q_B].c6!q_B.d6!Q_B.
+  c7?b_B.
+   meas b_B then 
+    c8?x_B.c9?z_B.
+    css_syndrome[r_B,x_B,z_B,sx_B,sz_B].
+    css_correct[r_B,sx_B,sz_B].
+    css_decode[r_B,x_B,z_B].
+    measure[r_B].
+    barrier?f_B.
+    ckb!r_B.
+    discard(b_B,s_B,t_B,x_B,z_B,sx_B,sz_B,f_B)
+   saem)/{c3, c4, c5, c6, c7, c8, c9, barrier})
+end
+
+environment EDPbased_ENV
+ EPR[q1_A,q2_A] * EPR[r1_A,r2_A] * RND_2n[s_A] * RND_N[t_A] *
+ Z_1[b1_A] * Z_1[b2_A] * Z_n[x_A] * Z_n[z_A] * 
+ Z_2n[S_A] * Z_N[T_A] * Z_1[B_A] * Z_n[X_A] * Z_1[f_A] *
+ Z_1[a_B] * Z_1[A_B] * Z_n[Q_B] * Z_n[sx_B] * Z_n[sz_B] * EVE[q_E] *
+ Z_n_n[v1_A,v_B] *
+ EVE1[q_B] * EVE2[r_B]
+end
+
+configuration EDP
+ proc EDPbased
+ env EDPbased_ENV
+end
+
+# BB84
+
+process BB84
+((hadamards[q2_A,r2_A,s_A].
+ shuffle[q2_A,r2_A,t_A].
+ c1!q2_A.c2!r2_A.c3?a_A.
+ copyN[t_A,T_A].c4!t_A.d1!T_A.
+ copy2n[s_A,S_A].c5!s_A.d2!S_A.
+ c6?u_A.abort_alice[q1_A,u_A,b1_A].
+ copy1[b1_A,b2_A].copy1[b1_A,B_A].
+ c7!b1_A.d3!B_A.
+ meas b2_A then 
+  cnot[r1_A,x_A].
+  copyn[x_A,X_A].
+  cnot_and_swap[x_A,r1_A].
+  key[r1_A].
+  c8!x_A.d4!X_A.
+  barrier!f_A.
+  cka!r1_A.
+  discard(q1_A,b2_A,a_A,z_A,u_A,v1_A,v_B)
+ saem
+||
+ c1?q_B.c2?r_B.
+ c3!a_B.d5!A_B.
+ c4?t_B.unshuffle[q_B,r_B,t_B].
+ c5?s_B.hadamards[q_B,r_B,s_B].
+ measure[q_B].
+ copyn[q_B,Q_B].c6!q_B.d6!Q_B.
+ c7?b_B.meas b_B then
+  c8?x_B.
+  measure[r_B].
+  cnot[r_B,x_B].
+  copyn[x_B,r_B].
+  syndrome[r_B,sx_B].
+  correct[r_B,sx_B].
+  key[r_B].
+  barrier?f_B.
+  ckb!r_B.
+  discard(b_B,s_B,t_B,x_B,sx_B,sz_B,f_B)
+ saem)/{c3, c4, c5, c6, c7, c8, barrier})
+end
+
+environment BB84_ENV
+ PROB[q1_A,q2_A] * PROB[r1_A,r2_A] * RND_2n[s_A] * 
+ RND_N[t_A] * Z_1[b1_A] * Z_1[b2_A] *
+ RC1c[x_A] * RC2[z_A] * 
+ Z_2n[S_A] * Z_N[T_A] * Z_1[B_A] * Z_n[X_A] * Z_1[f_A] * 
+ Z_1[a_B] * Z_1[A_B] * Z_n[Q_B] * 
+ Z_n[sx_B] * Z_n[sz_B] * 
+ Z_n_n[v1_A,v_B] *
+ EVE[q_E] * EVE1[q_B] * EVE2[r_B]
+end
+
+configuration BB84
+ proc BB84
+ env BB84_ENV
+end
+
+equation E1	
+ measure[r1_A](
+  css_decode[r1_A,x_A,z_A](
+   copyn[x_A,X_A](
+    css_projection[r1_A,x_A,z_A](
+     EPR[r1_A,r2_A] * Z_n[x_A] * Z_n[z_A] * Z_n[X_A]))))
+ = 
+ key[r1_A](
+  cnot_and_swap[x_A,r1_A](
+   copyn[x_A,X_A](
+    cnot[r1_A,x_A](
+     PROB[r1_A,r2_A] * RC1c[x_A] * RC2[z_A] * Z_n[X_A]))))
+end
+
+equation E2
+ measure[r_B](
+  css_decode[r_B,x_A,z_A](
+   css_correct[r_B,sx_B,sz_B](
+    css_syndrome[r_B,x_A,z_A,sx_B,sz_B](
+     cnot_and_swap[x_A,r1_A](
+      copyn[x_A,X_A](
+       cnot[r1_A,x_A](
+          PROB[r1_A,r2_A] * __[r_B]
+          * RC1c[x_A] * RC2[z_A] * Z_n[sx_B] * Z_n[sz_B] *
+          Z_n[X_A])))))))
+ = 
+ key[r_B](
+  correct[r_B,sx_B](
+   syndrome[r_B,sx_B](
+    copyn[x_A,r_B](
+     cnot[r_B,x_A](
+      measure[r_B](
+       cnot_and_swap[x_A,r1_A](
+        copyn[x_A,X_A](
+         cnot[r1_A,x_A](
+          PROB[r1_A,r2_A] * __[r_B]
+          * RC1c[x_A] * RC2[z_A] * Z_n[sx_B] * Z_n[sz_B] * 
+	  Z_n[X_A])))))))))
+end
+
+equation E3
+ measure[r2_A](
+  css_decode[r2_A,x_A,z_A](
+   css_correct[r2_A,sx_B,sz_B](
+    css_syndrome[r2_A,x_A,z_A,sx_B,sz_B](
+     cnot_and_swap[x_A,r1_A](
+      copyn[x_A,X_A](
+       cnot[r1_A,x_A](
+        __[r1_A,r2_A] * 
+        RC1c[x_A] * RC2[z_A] * Z_n[sx_B] * Z_n[sz_B] *
+	Z_n[X_A])))))))
+ = 
+ key[r2_A](
+  correct[r2_A,sx_B](
+   syndrome[r2_A,sx_B](
+    copyn[x_A,r2_A](
+     cnot[r2_A,x_A](
+      measure[r2_A](
+       cnot_and_swap[x_A,r1_A](
+        copyn[x_A,X_A](
+         cnot[r1_A,x_A](
+          __[r1_A,r2_A] * 
+          RC1c[x_A] * RC2[z_A] * Z_n[sx_B] * Z_n[sz_B] * 
+	  Z_n[X_A])))))))))
+end
+
+equation E4
+ Tr[q1_A](EPR[q1_A,q2_A]) = Tr[q1_A](PROB[q1_A,q2_A])
+end
+
+equation E5
+ Tr[r1_A](EPR[r1_A,r2_A]) = Tr[r1_A](PROB[r1_A,r2_A])
+end
+
+equation E6
+ measure[q1_A](EPR[q1_A,q2_A]) = PROB[q1_A,q2_A]
+end

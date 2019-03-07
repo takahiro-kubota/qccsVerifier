@@ -1,0 +1,68 @@
+nat 2;
+nat m;
+
+channel c : 1;
+channel d : 2;
+
+qvar q  : 2;
+qvar q1 : 1;
+qvar q2 : 1;
+qvar x  : 2;
+qvar qE : m;
+
+dsym EPR : 1,1;
+dsym ZERO : 2;
+dsym AFTER : 1,1,2;
+dsym ANY2bit : 2;
+dsym EVE : m;
+
+operator cnot : 1,1;
+operator hadamard : 1;
+operator measure : 1,1,2;
+operator sdcproc : 2,1;
+operator swap : 2,2;
+
+process Sdc_Proc
+ ((sdcproc[q,q1].c!q1.discard(q)
+ ||
+   c?y.cnot[y,q2].hadamard[y].
+   measure[y,q2,x].d!x.discard(y,q2)
+ )/{c})
+end
+
+process SdcSpec_Proc
+ swap[q,x].d!x.discard(q,q1,q2)
+end
+
+environment Sdc_Env
+ EPR[q1,q2] * ZERO[x] * ANY2bit[q] * EVE[qE]
+end
+
+environment SdcSpec_Env
+ EPR[q1,q2] * ZERO[x] * ANY2bit[q] * EVE[qE]
+end
+
+configuration Sdc
+ proc Sdc_Proc
+ env  Sdc_Env
+end
+
+configuration SdcSpec
+ proc SdcSpec_Proc
+ env  SdcSpec_Env
+end
+
+equation E1
+ Tr[q1,q2,q](
+  measure[q1,q2,x](
+  hadamard[q1](
+  cnot[q1,q2](
+  sdcproc[q,q1](
+   EPR[q1,q2] * ZERO[x] * ANY2bit[q])))))
+ = 
+  ANY2bit[x]
+end
+
+equation E2
+ swap[q,x](ZERO[x] * ANY2bit[q]) = ANY2bit[x] * ZERO[q]
+end

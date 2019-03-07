@@ -1,0 +1,62 @@
+nat 1;
+nat 2;
+nat m;
+
+channel c : 2;
+channel d : 1;
+
+qvar q  : 1;
+qvar q1 : 1;
+qvar q2 : 1;
+qvar x : 2;
+qvar qE : m;
+
+dsym EPR : 1,1;
+dsym ZERO : 2;
+dsym AFTER : 1,1,2;
+dsym ANY : 1;
+dsym EVE : m;
+
+operator cnot : 1,1;
+operator hadamard : 1;
+operator measure : 1,1,2;
+operator telproc : 2,1;
+operator swap : 1,1;
+
+process Tel_Proc
+ ((cnot[q,q1].hadamard[q].measure[q,q1,x].c!x.discard(q,q1)
+ ||
+   c?y.telproc[y,q2].d!q2.discard(y)
+ )/{c})
+end
+
+process TelSpec_Proc
+ swap[q,q2].d!q2.discard(q1,x,q)
+end
+
+environment Tel_Env
+ EPR[q1,q2] * ZERO[x] * ANY[q] * EVE[qE]
+end
+
+environment TelSpec_Env
+ EPR[q1,q2] * ZERO[x] * ANY[q] * EVE[qE]
+end
+
+configuration Tel
+ proc Tel_Proc
+ env  Tel_Env
+end
+
+configuration TelSpec
+ proc TelSpec_Proc
+ env  Tel_Env
+end
+
+equation E1
+ telproc[x,q2](measure[q,q1,x](hadamard[q](cnot[q,q1](EPR[q1,q2] * ZERO[x] * ANY[q])))) = 
+ ANY[q2] * AFTER[q,q1,x]
+end
+
+equation E2
+ swap[q,q2](EPR[q1,q2] * ANY[q]) = EPR[q1,q] * ANY[q2]
+end
